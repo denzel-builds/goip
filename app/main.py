@@ -2,13 +2,14 @@ from fastapi import FastAPI
 from app.database import engine, Base
 #Import the models so Base knows about them before creating the tables
 from app.models import opportunity
-from app.routers import opportunities
+from app.routers import auth, opportunities
 
 #Create the database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="goip API")
 
+app.include_router(auth.router)
 # Include the opportunities router
 app.include_router(opportunities.router)
 
