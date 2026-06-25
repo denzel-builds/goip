@@ -7,6 +7,8 @@ from datetime import date
 from app.database import get_db
 from app.models.opportunity import Opportunity
 from app.schemas.opportunity import OpportunityCreate, OpportunityUpdate, OpportunityResponse
+from app.services.auth_service import get_current_user
+from app.models.user import User
 
 # Initialize the router
 router = APIRouter(
@@ -15,7 +17,11 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=OpportunityResponse, status_code=201)
-def create_opportunity(opportunity: OpportunityCreate, db: Session = Depends(get_db)):
+def create_opportunity(
+    opportunity: OpportunityCreate, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user) 
+):
     # Convert Pydantic schema to SQLAlchemy model
     db_opp = Opportunity(**opportunity.model_dump())
     db.add(db_opp)
@@ -62,7 +68,7 @@ def get_opportunity(id: int, db: Session = Depends(get_db)):
     return db_opp
 
 @router.put("/{id}", response_model=OpportunityResponse)
-def update_opportunity(id: int, opportunity: OpportunityUpdate, db: Session = Depends(get_db)):
+def update_opportunity(id: int, opportunity: OpportunityUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_opp = db.query(Opportunity).filter(Opportunity.id == id).first()
     if not db_opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
@@ -77,7 +83,7 @@ def update_opportunity(id: int, opportunity: OpportunityUpdate, db: Session = De
     return db_opp
 
 @router.delete("/{id}", status_code=204)
-def delete_opportunity(id: int, db: Session = Depends(get_db)):
+def delete_opportunity(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_opp = db.query(Opportunity).filter(Opportunity.id == id).first()
     if not db_opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
